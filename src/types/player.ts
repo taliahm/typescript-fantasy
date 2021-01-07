@@ -5,28 +5,34 @@ export interface Episode {
 }
 
 export interface Player {
-  _id: string,
-  firstName: string,
-  lastName: string,
-  scores: Score[],
+  _id: string;
+  firstName: string;
+  lastName: string;
+  scores: Score[];
+  isEliminated: boolean
 }
 
 export interface Score {
-  episodeNumber: string;
-  eliminated: boolean;
-  leagueId: string;
-  text: string;
-  count: number;
-  pointValue: number;
-  _id: string;
+  episodeNumber: string
+  eliminated: boolean
+  leagueId: string
+  text: string
+  count: number
+  pointValue: number
+  _id: string
 }
 
 // Used in Players.js
 export interface PlayerWithEpisodes extends Player {
-  sortedScores: Episode,
-  isEliminated: boolean,
+  sortedScores: Episode
+  isEliminated: boolean
 }
 export interface PlayerNormalized extends Player {
-  organizedEps: Score[][],
-  isEliminated: boolean,
+  organizedEps: Score[][]
+  isEliminated: boolean
+}
+
+export interface PlayerWithScores extends Player {
+  totalPoints: number
+  sortedScores: Episode
 }

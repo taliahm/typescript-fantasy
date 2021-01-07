@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require('mongoose');
+const fetch = require('node-fetch');
+const cloudinary = require("cloudinary");
+const formData = require('form-data');
 
 const User = require("../models/User");
 
 const { createToken } = require('../tokenService');
 const { isLoggedIn } = require('../middleware');
+const { findByIdAndUpdate } = require("../models/User");
 // /api/user
 
 // Create a user and reply with token/user
@@ -24,13 +27,21 @@ router.post('/', async (req, res) => {
         return;
       }
       const doc = await user.save();
-      const token = createToken({ id: doc._id });
+      const token = createToken({ id: doc._id, role: doc.role });
       res.cookie("token", token);
       delete doc.password;
       res.json(doc);
     } catch (e) {
       console.log(e);
     }
+})
+
+router.patch('/', isLoggedIn, async (req, res) => {
+  const { firstName, lastName, email } = req.body;
+  const user = await User.findByIdAndUpdate(req.user.id, {
+    firstName, lastName, email
+  })
+  res.json({user})
 })
 
 router.post('/login', async (req, res) => {
@@ -60,46 +71,29 @@ router.get('/logout', (req, res) => {
 })
 
 
-// GATED routes
-// Add player to a team
-// router.patch('/team/:teamId', isLoggedIn, async (req, res) => {
-//     console.log("patching?");
-//     // db.collection.update(
-//     //   { "friends.u.username": "michael" },
-//     //   { $set: { "friends.$.u.name": "hello" } }
-//     // );
-//     // Player.findOne({ _id: playerId, scores: {$elemMatch: { episodeNumber: epNumber, _id: ruleId } } })
-//     const { players, name } = req.body;
-//     // if (!userId) {
-//     //     res.status(400).json({ message: "need a user id" });
-//     //     return;
-//     // }
-//     const { teamId } = req.params;
-    
-//     if (teamId === 'null' || !teamId) {
-//         console.log('in here?');
-//         res.status(400).json({ message: 'need time ID'});
-//         return;
-//     }
-//     // get league
-//     // get all teams in league
-//     // if player is in one of those teams, nah
-//     try {
-//         const update = await User.findOneAndUpdate(
-//         {
-//             _id: mongoose.Types.ObjectId(req.user._id),
-//             teams: { $elemMatch: { _id: mongoose.Types.ObjectId(teamId) } },
-//         },
-//         {
-//             $set: { "teams.$.name": name, "teams.$.players": players },
-//         }
-//         );
-//         res.json(update);
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).send({ message: e })
-//     }
-// })
+router.post('/signature', isLoggedIn, async (req, res) => {
+  console.log(req.body);
+  const { file, timestamp } = req.body;
+  // const timestamp = new Date();
+  const url =
+    "https://api.cloudinary.com/v1_1/dss7yz6h0/image/upload";
+
+  const apiSecret = "GZ0u-n6HuFOulTjidpKdyrGCWQg";
+  const params = {
+    timestamp: timestamp,
+  };
+  const signature = cloudinary.utils.api_sign_request(params, apiSecret);
+  res.json({signature})
+})
+
+router.post('/photo', isLoggedIn, async (req, res) => {
+  const { url } = req.body;
+  const update = await User.findByIdAndUpdate(req.user.id, {
+    profilePic: url,
+  }, { new: true })
+  res.json({user: update})
+})
+
 
 
 module.exports = router;

@@ -9,14 +9,19 @@ import TableBody from "@material-ui/core/TableBody";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import Table from "@material-ui/core/Table";
+import Avatar from "@material-ui/core/Avatar";
 
 import Grid from '@material-ui/core/Grid';
 import Typography from "@material-ui/core/Typography";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 
+import { useEpisodes } from '../hooks/useEpisodes';
+
 import { User } from '../types/user';
 import { PlayerWithEpisodes } from '../types/player';
+import { TeamWithPlayersWithScores } from '../types/team';
+import { episode } from '../types/episodes';
 
 interface TeamStatsProps {
   user: User,
@@ -26,41 +31,48 @@ interface TeamStatsParams {
   leagueId: string
 }
 
+const seasonId = "5fa306ffcd21f61bcc9e464b";
+
 function TeamStats({ user }:TeamStatsProps): JSX.Element {
     const [players, setPlayers] = useState<PlayerWithEpisodes[]>([]);
-    const [sortedTeams, setSortedTeams] = useState([]);
+    const [sortedTeams, setSortedTeams] = useState<TeamWithPlayersWithScores[]>(
+      []
+    );
+    const episodes = useEpisodes(seasonId);
+    console.log(episodes);
     const { leagueId } = useParams<TeamStatsParams>();
     useEffect(() => {
         const fetchData = async () => {
         const response = await axios.get(
             "http://localhost:3000/api/players"
         );
-
+        
         const teamsWithTotals = await axios.get(`/api/team/${leagueId}`)
+        console.log(teamsWithTotals);
         const episodeSorted = normalizeEpisodes(response.data, leagueId);
-
+        console.log(episodeSorted);
         setSortedTeams(teamsWithTotals.data.sorted);
         setPlayers(episodeSorted);
         };
       
         fetchData();
     }, []);
+    
  
-    const renderByEpisodeTableRows = (players) => {
+    const renderByEpisodeTableRows = (players: PlayerWithEpisodes[]) => {
       if (players.length === 0) return null;
-      const tableRows = [];
-      for (let i = 1; i <= 12; i++) {
-        tableRows.push(
+      return episodes.map((ep) => {
+        return (
           <TableRow>
-            <TableCell>{i}</TableCell>
+            <TableCell>{ep.number}</TableCell>
             {players.map((player) => {
-              const episode = player.sortedScores[`episodeNumber${i}`];
+              const episode = player.sortedScores[`episodeNumber${ep.number}`];
               if (!episode) return <TableCell>0</TableCell>;
               const total = episode.reduce((accum, curr) => {
                 if (!curr.count) return accum;
                 return accum + curr.pointValue * curr.count || 0;
               }, 0);
-              const isEliminated = episode.find(e => e.eliminated === true);
+              const isEliminated = episode.find((e) => e.eliminated === true);
               if (!!isEliminated) {
                 return (
                   <TableCell>
@@ -73,10 +85,9 @@ function TeamStats({ user }:TeamStatsProps): JSX.Element {
             })}
           </TableRow>
         );
-      }
-      return tableRows;
+      })
     };
-    const renderTotalTableRow = (players) => {
+    const renderTotalTableRow = (players: PlayerWithEpisodes[]) => {
         return (
             <TableRow>
                 <TableCell>Totals</TableCell>
@@ -105,28 +116,35 @@ function TeamStats({ user }:TeamStatsProps): JSX.Element {
                 <Card>
                   <CardContent>
                     {i === 0 && <Typography>Current Leader!</Typography>}
-                    {team.isCurrentUserTeam && <Typography>Your team!</Typography>}
+                    {team.isCurrentUserTeam && (
+                      <Typography>Your team!</Typography>
+                    )}
                     <Typography variant="h3">{team.name}</Typography>
-                    <Typography variant="h5">{team.userName}</Typography>
+                    <Typography variant="h5">
+                      <Avatar src={team.userPic} />
+                      {team.userName}
+                    </Typography>
                     <Typography variant="h4">{team.teamTotal}</Typography>
-                    <TableContainer size="small">
+                    <TableContainer component="div">
                       <Table>
                         <TableHead>
                           <TableRow>
-                            <TableCell>Player</TableCell>
+                            <TableCell>Episode</TableCell>
+                            <TableCell>Players</TableCell>
                             <TableCell>Total Points</TableCell>
                           </TableRow>
-                           </TableHead>
-                           <TableBody>
-                            {team.players.map((player) => {
-                              return (
-                                <TableRow>
-                                <TableCell>{player.firstName}</TableCell>
-                                <TableCell>{player.totalPoints}</TableCell>
-                                </TableRow>
-                              )
-                            })}
-                       </TableBody>
+                        </TableHead>
+                        <TableBody>
+                          {team.episodes.map((episode) => {
+                            return (
+                              <TableRow>
+                                  <TableCell>{episode.number}</TableCell>
+                                  <TableCell>{episode.players.map((pl, i, arr) => `${pl.firstName}${i === arr.length - 1 ? '' : ', ' }`)}</TableCell>
+                                  <TableCell>{episode.total}</TableCell>
+                              </TableRow>
+                            )
+                          })}
+                        </TableBody>
                       </Table>
                     </TableContainer>
                   </CardContent>
@@ -136,7 +154,7 @@ function TeamStats({ user }:TeamStatsProps): JSX.Element {
           })}
         </Grid>
         <h2>Overall Standings</h2>
-        <TableContainer container>
+        <TableContainer>
           <Table size="small">
             <TableHead>
               <TableRow>

@@ -10,6 +10,9 @@ import TeamStats from "./TeamStats.tsx";
 import Player from "./Player.tsx";
 import FindLeague from "./FindLeague.tsx";
 import CreateLeague from "./CreateLeague.tsx";
+import EditUser from './EditUser.tsx';
+import CreatePlayer from './CreatePlayer.tsx';
+import Role from './Role.tsx';
 
 import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";
@@ -18,6 +21,7 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import MenuIcon from "@material-ui/icons/Menu";
 import Button from "@material-ui/core/Button";
+import Avatar from "@material-ui/core/Avatar";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
@@ -41,17 +45,26 @@ function Main({ user, updateUser, fetchMe, leagueId, team, editRules }) {
     <>
       <AppBar>
         <Toolbar>
-          <MenuIcon className={classes.menuButton} onClick={() => setMenu(!menu)} />
+          <MenuIcon
+            className={classes.menuButton}
+            onClick={() => setMenu(!menu)}
+          />
           <Button type="button" onClick={logout}>
             Logout
           </Button>
+          <Avatar src={user.profilePic} />
         </Toolbar>
       </AppBar>
       {/* User already in league with a team, can do these things: */}
-      {user && user.teams.length !== 0 && (
-        <Drawer anchor="left" open={menu} onClose={() => setMenu(false)}>
-          <nav>
-            <List>
+      <Drawer anchor="left" open={menu} onClose={() => setMenu(false)}>
+         <List>
+           <Role userRole={user.role} role="SUPERADMIN">
+           <ListItem>
+             <Link to="/create/player">Create a new player</Link>
+           </ListItem>
+           </Role>
+        {user && user.teams.length !== 0 && (
+          <>
               {editRules && (
                 <ListItem button>
                   <Link className={classes.anchor} to="/scoring">
@@ -85,23 +98,30 @@ function Main({ user, updateUser, fetchMe, leagueId, team, editRules }) {
                   Find a league to join
                 </Link>
               </ListItem>
-            </List>
-          </nav>
-        </Drawer>
-      )}
-      {/* User with no league or team has to join a league and create a team */}
-      {user && user.teams.length === 0 && (
-        <nav>
-          <ul>
-            <li>
-              <Link to="/create/league">Create a league</Link>
-            </li>
-            <li>
-              <Link to="/find/league">Find a league to join</Link>
-            </li>
-          </ul>
-        </nav>
-      )}
+              <ListItem button>
+                <Link className={classes.anchor} to="/edit/user">
+                  Edit your details
+                </Link>
+              </ListItem>
+              </>
+              )}
+              {/* User with no league or team has to join a league and create a team */}
+              {user && user.teams.length === 0 && (
+                <>
+                  <ListItem>
+                    <Link to="/create/league">Create a league</Link>
+                  </ListItem>
+                  <ListItem>
+                    <Link to="/find/league">Find a league to join</Link>
+                  </ListItem>
+                  <ListItem>
+                    <Link to="/edit/user">Edit your details</Link>
+                  </ListItem>
+                </>
+              )}
+        </List>
+      </Drawer>
+
       {/* This route is a problem because it creates orphan users without a league or team.... */}
       {/* START HERE for a new user */}
       <section>
@@ -156,6 +176,15 @@ function Main({ user, updateUser, fetchMe, leagueId, team, editRules }) {
           path="/create/league"
           render={() => <CreateLeague user={user} updateUser={updateUser} />}
         />
+      </section>
+      <section>
+        <Route
+          path="/edit/user"
+          render={() => <EditUser user={user} updateUser={updateUser} />}
+        />
+      </section>
+      <section>
+        <Route path="/create/player" component={CreatePlayer} />
       </section>
     </>
   );

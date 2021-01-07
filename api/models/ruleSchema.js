@@ -8,6 +8,7 @@ const ruleSchema = new Schema({
   count: Number,
   id: Schema.Types.ObjectId,
   leagueId: Schema.Types.ObjectId,
+  total: Number,
   eliminated: {
     type: Boolean, 
     default: false,

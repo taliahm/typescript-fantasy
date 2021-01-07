@@ -18,6 +18,9 @@ const leagueSchema = new Schema({
     type: Boolean,
     default: true,
   },
+  locked: {
+    type: Date,
+  },
   season: 
     {
       type: Schema.Types.ObjectId,

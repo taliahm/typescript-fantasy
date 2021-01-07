@@ -29,10 +29,16 @@ const userSchema = new Schema({
   firstName: String,
   lastName: String,
   email: String,
+  role: {
+    type: String,
+    enum: ['ADMIN', 'USER', 'SUPERADMIN'],
+    default: 'user',
+  },
   password: {
     type: String,
     select: false,
   },
+  profilePic: String,
   teams: [{
     type: Schema.Types.ObjectId,
     ref: 'Team'

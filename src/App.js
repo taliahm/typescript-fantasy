@@ -9,6 +9,7 @@ import axios from 'axios';
 import Main from './components/Main';
 import LeagueSwitcher from './components/LeagueSwitcher.tsx';
 
+
 import Signup from './components/SignUp';
 import Login from './components/Login.tsx';
 
@@ -24,8 +25,10 @@ function App() {
   const [editRules, setEditRules] = useState(false);
   const fetchMe = useCallback(async function() {
     const response = await axios.get('/api/me');
+    console.log(response.data);
         // THIS NEEDS TO BE LEAGUE ID
         const leagueId = response.data.teams.length === 0 ? null : response.data.teams[0].league._id;
+        console.log(leagueId);
         const leagues = response.data.teams.map((t) => {
           return t.league;
         })
@@ -35,6 +38,7 @@ function App() {
             : response.data.teams[0].league.useCustomScores;
         setUser(response.data);
         setLeagueId(leagueId);
+        // this is WRONG, needs to be the team for the league
         setTeam(response.data.teams[0]);
         setTeams(response.data.teams);
         setLeagues(leagues);
@@ -101,7 +105,6 @@ function App() {
                 </>
               );
             } }/>
-  
       </div>
     </Router>
   );

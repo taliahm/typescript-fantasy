@@ -1,7 +1,20 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-
-
+// TO DO: you are here!!!!!!
+const episodeSchema = new Schema({
+  players: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Player",
+    },
+  ],
+  airDate: Date,
+  number: Number,
+  episodeId: {
+    type: Schema.Types.ObjectId,
+    ref: "Episode"
+  }
+});
 const teamSchema = new Schema({
   id: Schema.Types.ObjectId,
   league: {
@@ -14,6 +27,8 @@ const teamSchema = new Schema({
   // },
   name: String,
   userName: String,
+  userPic: String,
+  episodes: [episodeSchema],
   players: [
     {
       type: Schema.Types.ObjectId,

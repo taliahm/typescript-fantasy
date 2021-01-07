@@ -9,11 +9,9 @@ const { getPlayersByLeague } = require('../controllers/players');
 
 // un-gated routes
 router.get('/:playerId', async (req, res) => {
-    console.log('this one');
     const { playerId } = req.params;
     const { leagueId } = req.query;
     try {
-        console.log(leagueId);
         const doc = await Player.findById(playerId);
         if (leagueId) {
             const filteredScores = doc.scores.filter(sc => sc.leagueId.toString() === leagueId);
@@ -49,6 +47,19 @@ router.get('/', async (req, res) => {
     } catch (e) {
         console.log(e);
     }
+})
+
+router.post('/', async (req, res) => {
+    const { firstName, lastName } = req.body;
+    const player = new Player({
+      firstName,
+      lastName,
+      scores: [],
+      seasons: ["5fa306ffcd21f61bcc9e464b"],
+    });
+    const created = await player.save();
+    res.json({player: created})
+
 })
 
 // GLOBAL SCORE UPDATE
@@ -130,6 +141,7 @@ router.post('/score', async (req, res) => {
         if (!doc) {
         // OR push a new score into the scores array
         score.count = 1;
+        score.total = 1 * pointValue;
         await Player.updateOne(
             { _id: playerId },
             { $push: { scores: score } }
@@ -151,6 +163,7 @@ router.post('/score', async (req, res) => {
             });
 
             toUpdate.count = toUpdate.count + 1;
+            toUpdate.total = toUpdate.count * toUpdate.pointValue;
             newScores.push(toUpdate);
             doc.scores = newScores;
 

@@ -9,6 +9,7 @@ const userRoutes = require('./routes/user');
 const playersRoutes = require('./routes/players');
 const leagueRoutes = require('./routes/league');
 const teamRoutes = require('./routes/team');
+const episodeRoutes = require('./routes/episode');
 
 const { isLoggedIn } = require('./middleware');
 
@@ -27,12 +28,14 @@ mongoose
 const app = express();
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}))
 
 
 app.use("/api/user", userRoutes);
 app.use("/api/players", playersRoutes);
 app.use("/api/league", leagueRoutes);
 app.use("/api/team", teamRoutes);
+app.use("/api/episode", episodeRoutes);
 
 app.get('/api/me', isLoggedIn, async (req, res) => {
     try {
